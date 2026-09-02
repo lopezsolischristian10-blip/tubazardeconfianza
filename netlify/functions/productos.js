@@ -1,24 +1,17 @@
 import { getDatabase } from "@netlify/database";
 import { getStore } from "@netlify/blobs";
 
-
 export default async (req) => {
-
     try {
-
         const db = getDatabase();
-
         const store = getStore("ropa");
 
-
         /* ==========================================
-           GET
+           GET - OBTENER TODAS LAS PRENDAS
         ========================================== */
 
         if (req.method === "GET") {
-
             const resultado = await db.sql`
-
                 SELECT
                     id,
                     foto,
@@ -26,57 +19,25 @@ export default async (req) => {
                     precio,
                     categoria,
                     estado
-
                 FROM productos
-
                 ORDER BY id DESC
-
             `;
 
-
-            return respuestaJSON(
-                resultado.rows
-            );
-
+            return respuestaJSON(resultado);
         }
 
-
-
         /* ==========================================
-           POST
+           POST - AGREGAR PRENDA
         ========================================== */
 
         if (req.method === "POST") {
+            const formData = await req.formData();
 
-            const formData =
-                await req.formData();
-
-
-            const descripcion =
-                formData.get(
-                    "descripcion"
-                );
-
-            const precio =
-                formData.get(
-                    "precio"
-                );
-
-            const categoria =
-                formData.get(
-                    "categoria"
-                );
-
-            const estado =
-                formData.get(
-                    "estado"
-                );
-
-            const archivo =
-                formData.get(
-                    "foto"
-                );
-
+            const descripcion = formData.get("descripcion");
+            const precio = formData.get("precio");
+            const categoria = formData.get("categoria");
+            const estado = formData.get("estado");
+            const archivo = formData.get("foto");
 
             if (
                 !descripcion ||
@@ -84,59 +45,80 @@ export default async (req) => {
                 !categoria ||
                 !estado
             ) {
-
                 return respuestaError(
                     "Todos los campos son obligatorios.",
                     400
                 );
-
             }
 
+            /* Validar estado */
+            const estadosPermitidos = [
+                "disponible",
+                "apartado",
+                "comprado"
+            ];
+
+            if (!estadosPermitidos.includes(estado)) {
+                return respuestaError(
+                    "El estado seleccionado no es válido.",
+                    400
+                );
+            }
+
+            /* Validar precio */
+            const precioNumero = Number(precio);
+
+            if (
+                !Number.isFinite(precioNumero) ||
+                precioNumero < 0
+            ) {
+                return respuestaError(
+                    "El precio no es válido.",
+                    400
+                );
+            }
 
             let nombreFoto = null;
 
-
-            /*
-             * GUARDAR IMAGEN EN NETLIFY BLOBS
-             */
+            /* ==========================================
+               GUARDAR IMAGEN EN NETLIFY BLOBS
+            ========================================== */
 
             if (
                 archivo &&
                 typeof archivo !== "string" &&
                 archivo.size > 0
             ) {
-
-                nombreFoto =
-                    crearNombreImagen(
-                        archivo.name
+                if (!archivo.type.startsWith("image/")) {
+                    return respuestaError(
+                        "El archivo seleccionado no es una imagen.",
+                        400
                     );
+                }
 
+                nombreFoto = crearNombreImagen(
+                    archivo.name
+                );
 
                 const buffer =
                     await archivo.arrayBuffer();
-
 
                 await store.set(
                     nombreFoto,
                     buffer,
                     {
                         metadata: {
-                            contentType:
-                                archivo.type
+                            contentType: archivo.type
                         }
                     }
                 );
-
             }
 
+            /* ==========================================
+               INSERTAR PRODUCTO
+            ========================================== */
 
-            /*
-             * INSERTAR PRODUCTO
-             */
-
-            const resultado =
-                await db.sql`
-
+            const resultado = await db.sql`
                 INSERT INTO productos
                 (
                     foto,
@@ -145,16 +127,14 @@ export default async (req) => {
                     categoria,
                     estado
                 )
-
                 VALUES
                 (
                     ${nombreFoto},
                     ${descripcion},
-                    ${Number(precio)},
+                    ${precioNumero},
                     ${categoria},
                     ${estado}
                 )
-
                 RETURNING
                     id,
                     foto,
@@ -162,151 +142,147 @@ export default async (req) => {
                     precio,
                     categoria,
                     estado
-
             `;
 
-
             return respuestaJSON(
-                resultado.rows[0],
+                resultado[0],
                 201
             );
-
         }
 
-
-
         /* ==========================================
-           PUT
+           PUT - EDITAR PRENDA
         ========================================== */
 
         if (req.method === "PUT") {
+            const formData = await req.formData();
 
-            const formData =
-                await req.formData();
-
-
-            const id =
-                Number(
-                    formData.get("id")
-                );
-
+            const id = Number(
+                formData.get("id")
+            );
 
             if (!id) {
-
                 return respuestaError(
                     "ID inválido.",
                     400
                 );
-
             }
 
-
             const descripcion =
-                formData.get(
-                    "descripcion"
-                );
+                formData.get("descripcion");
 
             const precio =
-                formData.get(
-                    "precio"
-                );
+                formData.get("precio");
 
             const categoria =
-                formData.get(
-                    "categoria"
-                );
+                formData.get("categoria");
 
             const estado =
-                formData.get(
-                    "estado"
-                );
+                formData.get("estado");
 
             const archivo =
-                formData.get(
-                    "foto"
-                );
+                formData.get("foto");
 
-
-            /*
-             * OBTENER PRODUCTO ACTUAL
-             */
-
-            const actual =
-                await db.sql`
-
-                SELECT
-                    foto
-
-                FROM productos
-
-                WHERE id = ${id}
-
-            `;
-
+            /* Validar campos */
 
             if (
-                actual.rows.length === 0
+                !descripcion ||
+                !precio ||
+                !categoria ||
+                !estado
             ) {
+                return respuestaError(
+                    "Todos los campos son obligatorios.",
+                    400
+                );
+            }
 
+            const estadosPermitidos = [
+                "disponible",
+                "apartado",
+                "comprado"
+            ];
+
+            if (!estadosPermitidos.includes(estado)) {
+                return respuestaError(
+                    "El estado seleccionado no es válido.",
+                    400
+                );
+            }
+
+            const precioNumero = Number(precio);
+
+            if (
+                !Number.isFinite(precioNumero) ||
+                precioNumero < 0
+            ) {
+                return respuestaError(
+                    "El precio no es válido.",
+                    400
+                );
+            }
+
+            /* ==========================================
+               OBTENER PRODUCTO ACTUAL
+            ========================================== */
+
+            const actual = await db.sql`
+                SELECT
+                    foto
+                FROM productos
+                WHERE id = ${id}
+            `;
+
+            if (actual.length === 0) {
                 return respuestaError(
                     "La prenda no existe.",
                     404
                 );
-
             }
 
-
             let nombreFoto =
-                actual.rows[0].foto;
+                actual[0].foto;
 
-
-            /*
-             * SI SUBIÓ UNA NUEVA IMAGEN
-             */
+            /* ==========================================
+               SI SUBIÓ UNA NUEVA IMAGEN
+            ========================================== */
 
             if (
                 archivo &&
                 typeof archivo !== "string" &&
                 archivo.size > 0
             ) {
+                if (!archivo.type.startsWith("image/")) {
+                    return respuestaError(
+                        "El archivo seleccionado no es una imagen.",
+                        400
+                    );
+                }
 
-                /*
-                 * Eliminar imagen anterior
-                 */
+                /* Eliminar imagen anterior */
 
                 if (nombreFoto) {
-
                     try {
-
                         await store.delete(
                             nombreFoto
                         );
-
                     } catch (error) {
-
                         console.error(
                             "No se pudo eliminar la imagen anterior:",
                             error
                         );
-
                     }
-
                 }
 
-
-                /*
-                 * Crear nueva imagen
-                 */
+                /* Crear nueva imagen */
 
                 nombreFoto =
                     crearNombreImagen(
                         archivo.name
                     );
 
-
                 const buffer =
                     await archivo.arrayBuffer();
-
 
                 await store.set(
                     nombreFoto,
@@ -318,28 +294,21 @@ export default async (req) => {
                         }
                     }
                 );
-
             }
 
+            /* ==========================================
+               ACTUALIZAR PRODUCTO
+            ========================================== */
 
-            /*
-             * ACTUALIZAR
-             */
-
-            const resultado =
-                await db.sql`
-
+            const resultado = await db.sql`
                 UPDATE productos
-
                 SET
                     foto = ${nombreFoto},
                     descripcion = ${descripcion},
-                    precio = ${Number(precio)},
+                    precio = ${precioNumero},
                     categoria = ${categoria},
                     estado = ${estado}
-
                 WHERE id = ${id}
-
                 RETURNING
                     id,
                     foto,
@@ -347,129 +316,96 @@ export default async (req) => {
                     precio,
                     categoria,
                     estado
-
             `;
 
-
             return respuestaJSON(
-                resultado.rows[0]
+                resultado[0]
             );
-
         }
 
-
-
         /* ==========================================
-           DELETE
+           DELETE - ELIMINAR PRENDA
         ========================================== */
 
         if (req.method === "DELETE") {
+            const body = await req.json();
 
-            const body =
-                await req.json();
-
-
-            const id =
-                Number(body.id);
-
+            const id = Number(body.id);
 
             if (!id) {
-
                 return respuestaError(
                     "ID inválido.",
                     400
                 );
-
             }
 
+            /* ==========================================
+               OBTENER IMAGEN
+            ========================================== */
 
-            /*
-             * Obtener imagen
-             */
-
-            const actual =
-                await db.sql`
-
+            const actual = await db.sql`
                 SELECT
                     foto
-
                 FROM productos
-
                 WHERE id = ${id}
-
             `;
 
-
-            if (
-                actual.rows.length === 0
-            ) {
-
+            if (actual.length === 0) {
                 return respuestaError(
                     "La prenda no existe.",
                     404
                 );
-
             }
 
-
             const nombreFoto =
-                actual.rows[0].foto;
+                actual[0].foto;
 
-
-            /*
-             * Eliminar producto
-             */
+            /* ==========================================
+               ELIMINAR PRODUCTO
+            ========================================== */
 
             await db.sql`
-
                 DELETE FROM productos
-
                 WHERE id = ${id}
-
             `;
 
-
-            /*
-             * Eliminar imagen
-             */
+            /* ==========================================
+               ELIMINAR IMAGEN
+            ========================================== */
 
             if (nombreFoto) {
-
                 try {
-
                     await store.delete(
                         nombreFoto
                     );
-
                 } catch (error) {
-
                     console.error(
                         "No se pudo eliminar la imagen:",
                         error
                     );
-
                 }
-
             }
-
 
             return respuestaJSON({
                 mensaje:
                     "Producto eliminado correctamente."
             });
-
         }
 
+        /* ==========================================
+           MÉTODO NO PERMITIDO
+        ========================================== */
 
         return respuestaError(
             "Método no permitido.",
             405
         );
 
-
     } catch (error) {
-
-        console.error(error);
+        console.error(
+            "Error en productos.js:",
+            error
+        );
 
         const detalle =
             error?.cause?.message ||
@@ -480,11 +416,8 @@ export default async (req) => {
             `Error interno del servidor: ${detalle}`,
             500
         );
-
     }
-
 };
-
 
 
 /* ==========================================
@@ -494,58 +427,52 @@ export default async (req) => {
 function crearNombreImagen(
     nombreOriginal
 ) {
-
     const extension =
         nombreOriginal
             .split(".")
             .pop()
             .toLowerCase();
 
-
     const nombre =
         `${Date.now()}-${crypto.randomUUID()}.${extension}`;
 
-
     return `prendas/${nombre}`;
-
 }
 
 
-
 /* ==========================================
-   RESPUESTAS
+   RESPUESTA JSON
 ========================================== */
 
 function respuestaJSON(
     datos,
     status = 200
 ) {
-
     return new Response(
         JSON.stringify(datos),
         {
             status,
-
             headers: {
                 "Content-Type":
                     "application/json"
             }
         }
     );
-
 }
 
+
+/* ==========================================
+   RESPUESTA DE ERROR
+========================================== */
 
 function respuestaError(
     mensaje,
     status
 ) {
-
     return respuestaJSON(
         {
             error: mensaje
         },
         status
     );
-
 }
