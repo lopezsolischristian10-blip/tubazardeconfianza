@@ -667,7 +667,7 @@
         </nav>
 
         <p class="footer-panel-copy">
-            © 2026 Tu Bazar de Confianza. Panel de administración.
+            © <span id="anioActual">2026</span> Tu Bazar de Confianza. Panel de administración.
         </p>
 
     </div>
@@ -792,6 +792,14 @@
 <!-- JS -->
 
 <script src="js/admin.js"></script>
+
+
+<!-- Año dinámico del footer -->
+
+<script>
+    document.getElementById("anioActual").textContent =
+        new Date().getFullYear();
+</script>
 
 </body>
 

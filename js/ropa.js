@@ -4,8 +4,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById("loaderRopa");
     const sinRopa = document.getElementById("sinRopa");
     const filtros = document.getElementById("filtrosCategorias");
+    const filtrosEstados = document.getElementById("filtrosEstados");
 
     let productos = [];
+
+
+    /*
+     * Filtros activos. Ambos se aplican en conjunto
+     * (estado Y categoría) sobre el listado completo.
+     */
+
+    let filtroEstadoActual = "todos";
+
+    let filtroCategoriaActual = "todas";
+
+
+    /*
+     * Número de tarjetas que se muestran de inicio.
+     * El resto queda oculto detrás del botón "ver más".
+     */
+
+    const LIMITE_TARJETAS = 14;
 
 
     /*
@@ -128,20 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             boton.addEventListener("click", () => {
 
-                document
-                    .querySelectorAll(".btn-filtro")
-                    .forEach(btn =>
-                        btn.classList.remove("activo")
-                    );
-
-                boton.classList.add("activo");
-
-                const filtrados = productos.filter(
-                    producto =>
-                        producto.categoria === categoria
+                seleccionarFiltro(
+                    filtros,
+                    boton
                 );
 
-                mostrarProductos(filtrados);
+                filtroCategoriaActual = categoria;
+
+                aplicarFiltros();
 
             });
 
@@ -150,24 +163,98 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
 
+        /* Botón "Todas" (categorías) */
+
         const botonTodas =
-            document.querySelector(
+            filtros.querySelector(
                 '[data-categoria="todas"]'
             );
 
         botonTodas.addEventListener("click", () => {
 
-            document
-                .querySelectorAll(".btn-filtro")
-                .forEach(btn =>
-                    btn.classList.remove("activo")
-                );
+            seleccionarFiltro(
+                filtros,
+                botonTodas
+            );
 
-            botonTodas.classList.add("activo");
+            filtroCategoriaActual = "todas";
 
-            mostrarProductos(productos);
+            aplicarFiltros();
 
         });
+
+
+        /* Botones de estado (ya existen en el HTML) */
+
+        filtrosEstados
+            .querySelectorAll(".btn-filtro")
+            .forEach(boton => {
+
+                boton.addEventListener("click", () => {
+
+                    seleccionarFiltro(
+                        filtrosEstados,
+                        boton
+                    );
+
+                    filtroEstadoActual =
+                        boton.dataset.estado;
+
+                    aplicarFiltros();
+
+                });
+
+            });
+
+    }
+
+
+    /* ==========================================
+       SELECCIONAR FILTRO (marca el botón activo
+       dentro de su propio grupo, sin afectar al
+       otro grupo de filtros)
+    ========================================== */
+
+    function seleccionarFiltro(grupo, botonActivo) {
+
+        grupo
+            .querySelectorAll(".btn-filtro")
+            .forEach(btn =>
+                btn.classList.remove("activo")
+            );
+
+        botonActivo.classList.add("activo");
+
+    }
+
+
+    /* ==========================================
+       APLICAR FILTROS (estado + categoría)
+    ========================================== */
+
+    function aplicarFiltros() {
+
+        let filtrados = productos;
+
+        if (filtroEstadoActual !== "todos") {
+
+            filtrados = filtrados.filter(
+                producto =>
+                    producto.estado === filtroEstadoActual
+            );
+
+        }
+
+        if (filtroCategoriaActual !== "todas") {
+
+            filtrados = filtrados.filter(
+                producto =>
+                    producto.categoria === filtroCategoriaActual
+            );
+
+        }
+
+        mostrarProductos(filtrados);
 
     }
 
@@ -178,9 +265,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function mostrarProductos(lista) {
 
-        contenedor.innerHTML = "";
-
         if (lista.length === 0) {
+
+            contenedor.innerHTML = "";
 
             mostrarMensajeSinRopa();
 
@@ -191,7 +278,33 @@ document.addEventListener("DOMContentLoaded", () => {
         sinRopa.classList.add("d-none");
 
 
-        lista.forEach(producto => {
+        /*
+         * Cada vez que se muestra un nuevo listado
+         * (por ejemplo al cambiar de filtro) se
+         * arranca otra vez mostrando solo las
+         * primeras tarjetas.
+         */
+
+        renderizarTarjetas(lista, false);
+
+    }
+
+
+    /* ==========================================
+       RENDERIZAR TARJETAS (con límite y botón
+       "ver más" opcional)
+    ========================================== */
+
+    function renderizarTarjetas(lista, mostrarTodas) {
+
+        contenedor.innerHTML = "";
+
+        const visibles =
+            mostrarTodas
+                ? lista
+                : lista.slice(0, LIMITE_TARJETAS);
+
+        visibles.forEach(producto => {
 
             const tarjeta =
                 crearTarjeta(producto);
@@ -200,7 +313,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
 
+
+        if (
+            !mostrarTodas &&
+            lista.length > LIMITE_TARJETAS
+        ) {
+
+            contenedor.appendChild(
+                crearBotonVerMasCatalogo(lista)
+            );
+
+        }
+
         actualizarBotonesVerMas();
+
+    }
+
+
+    /* ==========================================
+       BOTÓN "+" (VER MÁS PRENDAS)
+       Ocupa el lugar de la tarjeta 15 y, al
+       presionarlo, muestra todo el listado.
+    ========================================== */
+
+    function crearBotonVerMasCatalogo(lista) {
+
+        const columna =
+            document.createElement("div");
+
+        columna.className = "col";
+
+
+        const boton =
+            document.createElement("button");
+
+        boton.type = "button";
+
+        boton.className = "btn-ver-mas-catalogo";
+
+        boton.setAttribute(
+            "aria-label",
+            "Ver más prendas"
+        );
+
+        boton.innerHTML =
+            `<i class="bi bi-plus-lg"></i>
+             <span>Ver más</span>`;
+
+        boton.addEventListener("click", () => {
+
+            renderizarTarjetas(lista, true);
+
+        });
+
+
+        columna.appendChild(boton);
+
+        return columna;
 
     }
 
@@ -233,8 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const columna =
             document.createElement("div");
 
-        columna.className =
-            "col-12 col-sm-6 col-lg-4 col-xl-3";
+        columna.className = "col";
 
 
         const tarjeta =
