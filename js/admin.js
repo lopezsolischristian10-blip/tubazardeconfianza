@@ -52,6 +52,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const paginacionProductos =
         document.getElementById("paginacionProductos");
 
+    const buscarProducto =
+        document.getElementById("buscarProducto");
+
+    const filtroEstado =
+        document.getElementById("filtroEstado");
+
     let productos = [];
 
     let idEliminar = null;
@@ -59,6 +65,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const PRODUCTOS_POR_PAGINA = 10;
 
     let paginaActual = 1;
+
+
+
+    /* ==========================================
+       FILTRAR PRODUCTOS DE LA TABLA
+       (por texto de búsqueda y por estado)
+    ========================================== */
+
+    function obtenerProductosFiltrados() {
+
+        const termino =
+            buscarProducto.value
+                .trim()
+                .toLowerCase();
+
+        const estadoSeleccionado =
+            filtroEstado.value;
+
+        return productos.filter(producto => {
+
+            const coincideEstado =
+                estadoSeleccionado === "todos" ||
+                producto.estado === estadoSeleccionado;
+
+            const coincideTexto =
+                !termino ||
+                (producto.descripcion || "")
+                    .toLowerCase()
+                    .includes(termino) ||
+                (producto.categoria || "")
+                    .toLowerCase()
+                    .includes(termino);
+
+            return coincideEstado && coincideTexto;
+
+        });
+
+    }
+
+
+    [buscarProducto, filtroEstado].forEach(control => {
+
+        control.addEventListener(
+            control === buscarProducto ? "input" : "change",
+            () => {
+
+                paginaActual = 1;
+
+                mostrarTabla();
+
+            }
+        );
+
+    });
 
 
 
@@ -175,7 +235,33 @@ document.addEventListener("DOMContentLoaded", () => {
             }`;
 
 
+        const listaFiltrada =
+            obtenerProductosFiltrados();
+
+
         if (productos.length === 0) {
+
+            sinProductos.querySelector("h3").textContent =
+                "Todavía no hay prendas";
+
+            sinProductos.querySelector("p").textContent =
+                "Agrega la primera prenda utilizando el formulario.";
+
+            sinProductos.classList.remove("d-none");
+
+            paginacionProductos.innerHTML = "";
+
+            return;
+
+        }
+
+        if (listaFiltrada.length === 0) {
+
+            sinProductos.querySelector("h3").textContent =
+                "Sin resultados";
+
+            sinProductos.querySelector("p").textContent =
+                "Ninguna prenda coincide con el filtro aplicado.";
 
             sinProductos.classList.remove("d-none");
 
@@ -193,14 +279,15 @@ document.addEventListener("DOMContentLoaded", () => {
          *
          * Se muestran únicamente 10 registros por
          * página, navegables con "Anterior", números
-         * de página y "Siguiente".
+         * de página y "Siguiente". La paginación se
+         * calcula sobre la lista ya filtrada.
          */
 
         const totalPaginas =
             Math.max(
                 1,
                 Math.ceil(
-                    productos.length / PRODUCTOS_POR_PAGINA
+                    listaFiltrada.length / PRODUCTOS_POR_PAGINA
                 )
             );
 
@@ -216,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
             (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
 
         const productosPagina =
-            productos.slice(
+            listaFiltrada.slice(
                 inicio,
                 inicio + PRODUCTOS_POR_PAGINA
             );
@@ -275,6 +362,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     ${escapeHTML(
                         producto.categoria || ""
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    ${formatearFecha(
+                        producto.fecha
                     )}
 
                 </td>
@@ -939,6 +1035,34 @@ document.addEventListener("DOMContentLoaded", () => {
         btnCancelar.classList.add(
             "d-none"
         );
+
+    }
+
+
+
+    /* ==========================================
+       FECHA
+    ========================================== */
+
+    function formatearFecha(fecha) {
+
+        if (!fecha) return "—";
+
+        /*
+         * Llega como "AAAA-MM-DD" (tipo DATE de
+         * PostgreSQL). Se arma el texto directo del
+         * string para evitar corrimientos de un día
+         * por zona horaria al usar new Date().
+         */
+
+        const partes =
+            String(fecha).slice(0, 10).split("-");
+
+        if (partes.length !== 3) return "—";
+
+        const [anio, mes, dia] = partes;
+
+        return `${dia}/${mes}/${anio}`;
 
     }
 

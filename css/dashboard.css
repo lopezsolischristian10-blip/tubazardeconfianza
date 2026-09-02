@@ -196,7 +196,7 @@ body {
 
     font-family: "Cormorant Garamond", serif;
 
-    font-size: 3rem;
+    font-size: 2.2rem;
 
     margin: 5px 0;
 }
@@ -207,6 +207,14 @@ body {
     color: #e2cbd5;
 
     font-size: 0.85rem;
+}
+
+.categoria-estrella-valor {
+    font-size: 1.4rem !important;
+
+    line-height: 1.2;
+
+    word-break: break-word;
 }
 
 
@@ -461,10 +469,6 @@ body {
 
     .dashboard-header h1 {
         font-size: 3rem;
-    }
-
-    .info-card strong {
-        font-size: 2.5rem;
     }
 
 }

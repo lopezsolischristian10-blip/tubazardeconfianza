@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "ropa-categoria";
 
         categoria.textContent =
-            producto.categoria || "Ropa";
+            formatearCategoriaFecha(producto);
 
 
         const descripcion =
@@ -394,10 +394,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         informacion.appendChild(categoria);
 
-        informacion.appendChild(descripcion);
-
-        informacion.appendChild(botonVerMas);
-
         informacion.appendChild(precio);
 
 
@@ -405,7 +401,10 @@ document.addEventListener("DOMContentLoaded", () => {
          * WHATSAPP
          *
          * Solamente se crea si el estado
-         * es "disponible".
+         * es "disponible". Se coloca justo
+         * después del precio, para que quede
+         * visible de inmediato junto con la
+         * categoría/fecha y el estado.
          */
 
         if (producto.estado === "disponible") {
@@ -415,6 +414,11 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         }
+
+
+        informacion.appendChild(descripcion);
+
+        informacion.appendChild(botonVerMas);
 
 
         tarjeta.appendChild(imagenContenedor);
@@ -506,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         whatsapp.innerHTML =
-            `<i class="bi bi-whatsapp"></i> Yo quiero esta prenda`;
+            `<i class="bi bi-whatsapp"></i> YO`;
 
 
         return whatsapp;
@@ -592,7 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         categoriaTitulo.textContent =
-            producto.categoria || "Prenda";
+            formatearCategoriaFecha(producto);
 
         texto.textContent =
             producto.descripcion || "";
@@ -664,6 +668,52 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 300);
 
         }, 3500);
+
+    }
+
+
+    /* ==========================================
+       FORMATEAR FECHA (DD/MM/AAAA)
+    ========================================== */
+
+    function formatearFecha(fecha) {
+
+        if (!fecha) return "";
+
+        /*
+         * La fecha llega como "AAAA-MM-DD" (tipo DATE
+         * de PostgreSQL). Se arma el texto directo del
+         * string para evitar corrimientos de un día por
+         * zona horaria al usar new Date().
+         */
+
+        const partes =
+            String(fecha).slice(0, 10).split("-");
+
+        if (partes.length !== 3) return "";
+
+        const [anio, mes, dia] = partes;
+
+        return `${dia}/${mes}/${anio}`;
+
+    }
+
+
+    /* ==========================================
+       CATEGORÍA + FECHA
+    ========================================== */
+
+    function formatearCategoriaFecha(producto) {
+
+        const categoria =
+            producto.categoria || "Ropa";
+
+        const fecha =
+            formatearFecha(producto.fecha);
+
+        return fecha
+            ? `${categoria} - ${fecha}`
+            : categoria;
 
     }
 

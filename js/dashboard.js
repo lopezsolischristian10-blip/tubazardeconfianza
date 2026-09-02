@@ -163,6 +163,15 @@ function calcularEstadisticas(
         );
 
 
+    const valorApartado =
+        apartadas.reduce(
+            (total, producto) =>
+                total +
+                Number(producto.precio || 0),
+            0
+        );
+
+
     const valorComprado =
         compradas.reduce(
             (total, producto) =>
@@ -170,6 +179,12 @@ function calcularEstadisticas(
                 Number(producto.precio || 0),
             0
         );
+
+
+    const valorTotalInventario =
+        valorDisponible +
+        valorApartado +
+        valorComprado;
 
 
     document.getElementById(
@@ -181,10 +196,73 @@ function calcularEstadisticas(
 
 
     document.getElementById(
+        "valorApartado"
+    ).textContent =
+        formatearPrecio(
+            valorApartado
+        );
+
+
+    document.getElementById(
         "valorComprado"
     ).textContent =
         formatearPrecio(
             valorComprado
+        );
+
+
+    document.getElementById(
+        "valorTotalInventario"
+    ).textContent =
+        formatearPrecio(
+            valorTotalInventario
+        );
+
+
+
+    /* ==================================
+       OTROS DATOS
+    ================================== */
+
+    const precioPromedio =
+        total > 0
+            ? valorTotalInventario / total
+            : 0;
+
+    document.getElementById(
+        "precioPromedio"
+    ).textContent =
+        formatearPrecio(
+            precioPromedio
+        );
+
+
+    document.getElementById(
+        "categoriaEstrella"
+    ).textContent =
+        obtenerCategoriaEstrella(
+            productos
+        );
+
+
+    const porcentajeVendidas =
+        total > 0
+            ? Math.round(
+                (compradas.length / total) * 100
+            )
+            : 0;
+
+    document.getElementById(
+        "porcentajeVendidas"
+    ).textContent =
+        `${porcentajeVendidas}%`;
+
+
+    document.getElementById(
+        "prendasRecientes"
+    ).textContent =
+        contarPrendasRecientes(
+            productos
         );
 
 
@@ -415,6 +493,89 @@ function mostrarCategorias(
             );
 
         });
+
+}
+
+
+
+/* =========================================
+   CATEGORÍA ESTRELLA (más popular)
+========================================= */
+
+function obtenerCategoriaEstrella(
+    productos
+) {
+
+    if (!productos.length) return "—";
+
+
+    const conteo = {};
+
+    productos.forEach(producto => {
+
+        const categoria =
+            producto.categoria ||
+            "Sin categoría";
+
+        conteo[categoria] =
+            (conteo[categoria] || 0) + 1;
+
+    });
+
+
+    const [nombreTop] =
+        Object.entries(conteo)
+            .sort((a, b) => b[1] - a[1])[0];
+
+    return nombreTop;
+
+}
+
+
+
+/* =========================================
+   PRENDAS AGREGADAS EN LOS ÚLTIMOS 7 DÍAS
+========================================= */
+
+function contarPrendasRecientes(
+    productos
+) {
+
+    const hoy = new Date();
+
+    hoy.setHours(0, 0, 0, 0);
+
+    const hace7Dias =
+        new Date(hoy);
+
+    hace7Dias.setDate(
+        hace7Dias.getDate() - 6
+    );
+
+
+    return productos.filter(producto => {
+
+        if (!producto.fecha) return false;
+
+        const partes =
+            String(producto.fecha)
+                .slice(0, 10)
+                .split("-");
+
+        if (partes.length !== 3) return false;
+
+        const [anio, mes, dia] =
+            partes.map(Number);
+
+        const fechaProducto =
+            new Date(anio, mes - 1, dia);
+
+        return (
+            fechaProducto >= hace7Dias &&
+            fechaProducto <= hoy
+        );
+
+    }).length;
 
 }
 

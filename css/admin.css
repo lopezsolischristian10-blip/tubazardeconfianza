@@ -460,6 +460,47 @@ textarea.form-control {
 
 
 /* =========================================
+   FILTROS DE TABLA
+========================================= */
+
+.filtros-tabla {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.filtro-busqueda {
+    position: relative;
+
+    flex: 1 1 260px;
+}
+
+.filtro-busqueda i {
+    position: absolute;
+
+    top: 50%;
+
+    left: 14px;
+
+    transform: translateY(-50%);
+
+    color: #b785a0;
+}
+
+.filtro-busqueda input {
+    padding-left: 38px;
+}
+
+.filtro-estado-select {
+    flex: 0 1 200px;
+}
+
+
+/* =========================================
    TABLA
 ========================================= */
 
