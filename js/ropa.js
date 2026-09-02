@@ -523,16 +523,29 @@ document.addEventListener("DOMContentLoaded", () => {
         superiorDerecha.appendChild(precioOverlay);
 
 
+        imagenContenedor.appendChild(superiorDerecha);
+
+
+        /*
+         * BOTÓN "YO" (sobre la imagen, esquina
+         * inferior izquierda)
+         */
+
         if (producto.estado === "disponible") {
 
-            superiorDerecha.appendChild(
+            const inferiorIzquierda =
+                document.createElement("div");
+
+            inferiorIzquierda.className =
+                "ropa-inferior-izquierda";
+
+            inferiorIzquierda.appendChild(
                 crearBotonWhatsapp(producto, true)
             );
 
+            imagenContenedor.appendChild(inferiorIzquierda);
+
         }
-
-
-        imagenContenedor.appendChild(superiorDerecha);
 
 
         /* Información */
@@ -632,27 +645,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const imagenURL =
-            `${window.location.origin}/.netlify/functions/imagen?key=${encodeURIComponent(producto.foto)}`;
-
-
-        const mensaje =
-            `YO 🙋🏻‍♀️\n\n` +
-            `${producto.descripcion}\n\n` +
-            `Precio: ${formatearPrecio(producto.precio)}\n\n` +
-            `Foto: ${imagenURL}`;
+            producto.foto
+                ? `${window.location.origin}/.netlify/functions/imagen?key=${encodeURIComponent(producto.foto)}`
+                : "";
 
 
         /*
          * Enlace al grupo de WhatsApp.
          *
-         * IMPORTANTE: WhatsApp no permite prellenar
-         * un mensaje (ni mucho menos adjuntar una foto)
-         * en un link de invitación a grupo, así que
-         * copiamos el mensaje al portapapeles antes de
-         * abrir el grupo, para que la clienta solo tenga
-         * que pegarlo. El mensaje siempre incluye el "YO",
-         * la descripción/leyenda de la prenda y el enlace
-         * de la foto.
+         * WhatsApp no permite prellenar un mensaje ni una
+         * foto en un link de invitación a grupo, así que
+         * primero intentamos compartir directamente la
+         * imagen de la prenda seleccionada junto con el
+         * texto "Yo" usando el panel nativo de compartir
+         * del celular (Web Share API). Ahí la clienta solo
+         * elige el grupo de WhatsApp y envía. Si el
+         * dispositivo no soporta compartir archivos (por
+         * ejemplo, en computadora), caemos al plan B: se
+         * copia "Yo" al portapapeles, se abre la foto en
+         * una pestaña para guardarla y se abre el grupo
+         * para que la clienta pegue el texto y adjunte la
+         * imagen manualmente.
          */
 
         const linkGrupo =
@@ -665,15 +678,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         whatsapp.addEventListener(
             "click",
-            async () => {
+            async (evento) => {
+
+                evento.preventDefault();
+
+                const compartidoDirecto =
+                    await compartirPrendaPorWhatsapp(
+                        imagenURL
+                    );
+
+                if (compartidoDirecto) return;
 
                 try {
 
                     await navigator.clipboard.writeText(
-                        mensaje
+                        "Yo"
                     );
-
-                    mostrarAvisoCopiado();
 
                 } catch (error) {
 
@@ -684,6 +704,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 }
 
+                if (imagenURL) {
+
+                    window.open(
+                        imagenURL,
+                        "_blank",
+                        "noopener"
+                    );
+
+                }
+
+                window.open(
+                    linkGrupo,
+                    "_blank",
+                    "noopener"
+                );
+
+                mostrarAvisoCopiado();
+
             }
         );
 
@@ -693,6 +731,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         return whatsapp;
+
+    }
+
+
+    /* ==========================================
+       COMPARTIR LA PRENDA (IMAGEN + "YO") POR
+       WHATSAPP USANDO EL PANEL NATIVO DE COMPARTIR
+
+       Devuelve true si se logró abrir el panel de
+       compartir (o si la clienta lo canceló), y
+       false si el navegador no lo soporta, para
+       que se use el plan B (copiar y abrir el link).
+    ========================================== */
+
+    async function compartirPrendaPorWhatsapp(imagenURL) {
+
+        if (
+            !imagenURL ||
+            !navigator.share ||
+            !navigator.canShare
+        ) {
+            return false;
+        }
+
+        try {
+
+            const respuesta =
+                await fetch(imagenURL);
+
+            const blobImagen =
+                await respuesta.blob();
+
+            const extension =
+                (blobImagen.type.split("/")[1] || "jpg")
+                    .split("+")[0];
+
+            const archivoImagen =
+                new File(
+                    [blobImagen],
+                    `prenda.${extension}`,
+                    { type: blobImagen.type }
+                );
+
+            if (
+                !navigator.canShare(
+                    { files: [archivoImagen] }
+                )
+            ) {
+                return false;
+            }
+
+            await navigator.share({
+                files: [archivoImagen],
+                text: "Yo"
+            });
+
+            return true;
+
+        } catch (error) {
+
+            /*
+             * Si la clienta cierra o cancela el panel
+             * de compartir, el navegador también lanza
+             * un error (AbortError); en ese caso no
+             * queremos mostrar el plan B, así que se
+             * trata como "manejado".
+             */
+
+            if (error && error.name === "AbortError") {
+                return true;
+            }
+
+            console.error(
+                "No se pudo compartir la imagen directamente:",
+                error
+            );
+
+            return false;
+
+        }
 
     }
 

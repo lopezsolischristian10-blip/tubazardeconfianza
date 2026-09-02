@@ -377,6 +377,73 @@
 
 
 /* =========================================
+   PREGUNTAS FRECUENTES
+========================================= */
+
+.seccion-faq {
+    padding: 90px 0;
+
+    background: #fff8fb;
+}
+
+.acordeon-faq {
+    max-width: 850px;
+
+    margin: 0 auto;
+}
+
+.acordeon-faq .accordion-item {
+    border: none;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    margin-bottom: 16px;
+
+    box-shadow:
+        0 8px 25px rgba(100, 30, 65, 0.08);
+}
+
+.acordeon-faq .accordion-button {
+    font-family: "Poppins", sans-serif;
+
+    font-weight: 600;
+
+    color: #54243b;
+
+    background: white;
+
+    padding: 20px 24px;
+}
+
+.acordeon-faq .accordion-button:not(.collapsed) {
+    color: #d63384;
+
+    background: #fde3ef;
+
+    box-shadow: none;
+}
+
+.acordeon-faq .accordion-button:focus {
+    box-shadow:
+        0 0 0 3px rgba(214, 51, 132, 0.15);
+}
+
+.acordeon-faq .accordion-button::after {
+    filter: hue-rotate(300deg) saturate(3.5);
+}
+
+.acordeon-faq .accordion-body {
+    color: #684b58;
+
+    line-height: 1.8;
+
+    padding: 4px 24px 22px;
+}
+
+
+/* =========================================
    FILTROS
 ========================================= */
 
@@ -577,6 +644,17 @@
 
     box-shadow:
         0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+
+/* Botón "Yo" (esquina inferior izquierda de la imagen) */
+
+.ropa-inferior-izquierda {
+    position: absolute;
+
+    bottom: 15px;
+
+    left: 15px;
 }
 
 
