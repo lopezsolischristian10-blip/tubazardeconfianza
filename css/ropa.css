@@ -525,6 +525,61 @@
 }
 
 
+/* Precio y WhatsApp (sobre la imagen) */
+
+.ropa-superior-derecha {
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 8px;
+
+    max-width: 60%;
+}
+
+.precio-overlay {
+    background: rgba(255, 255, 255, 0.95);
+
+    color: #54243b;
+
+    padding: 6px 13px;
+
+    border-radius: 20px;
+
+    font-size: 0.85rem;
+
+    font-weight: 700;
+
+    box-shadow:
+        0 4px 12px rgba(84, 36, 59, 0.18);
+
+    white-space: nowrap;
+}
+
+.btn-whatsapp-overlay {
+    width: auto;
+
+    margin-bottom: 0;
+
+    padding: 6px 14px;
+
+    border-radius: 20px;
+
+    font-size: 0.8rem;
+
+    box-shadow:
+        0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+
 /* Información */
 
 .ropa-info {

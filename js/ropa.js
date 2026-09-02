@@ -494,6 +494,47 @@ document.addEventListener("DOMContentLoaded", () => {
         imagenContenedor.appendChild(estado);
 
 
+        /*
+         * PRECIO Y WHATSAPP (sobre la imagen)
+         *
+         * Se colocan del lado derecho, a la misma
+         * altura que la etiqueta de estado, para que
+         * precio, disponibilidad y el botón de "YO"
+         * queden visibles de un vistazo, sin tener
+         * que bajar hasta la descripción.
+         */
+
+        const superiorDerecha =
+            document.createElement("div");
+
+        superiorDerecha.className =
+            "ropa-superior-derecha";
+
+
+        const precioOverlay =
+            document.createElement("span");
+
+        precioOverlay.className =
+            "precio-overlay";
+
+        precioOverlay.textContent =
+            formatearPrecio(producto.precio);
+
+        superiorDerecha.appendChild(precioOverlay);
+
+
+        if (producto.estado === "disponible") {
+
+            superiorDerecha.appendChild(
+                crearBotonWhatsapp(producto, true)
+            );
+
+        }
+
+
+        imagenContenedor.appendChild(superiorDerecha);
+
+
         /* Información */
 
         const informacion =
@@ -550,39 +591,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        const precio =
-            document.createElement("div");
-
-        precio.className =
-            "ropa-precio";
-
-        precio.textContent =
-            formatearPrecio(producto.precio);
-
-
         informacion.appendChild(categoria);
-
-        informacion.appendChild(precio);
-
-
-        /*
-         * WHATSAPP
-         *
-         * Solamente se crea si el estado
-         * es "disponible". Se coloca justo
-         * después del precio, para que quede
-         * visible de inmediato junto con la
-         * categoría/fecha y el estado.
-         */
-
-        if (producto.estado === "disponible") {
-
-            informacion.appendChild(
-                crearBotonWhatsapp(producto)
-            );
-
-        }
-
 
         informacion.appendChild(descripcion);
 
@@ -607,13 +616,15 @@ document.addEventListener("DOMContentLoaded", () => {
        modal de descripción)
     ========================================== */
 
-    function crearBotonWhatsapp(producto) {
+    function crearBotonWhatsapp(producto, esOverlay = false) {
 
         const whatsapp =
             document.createElement("a");
 
         whatsapp.className =
-            "btn-whatsapp";
+            esOverlay
+                ? "btn-whatsapp btn-whatsapp-overlay"
+                : "btn-whatsapp";
 
         whatsapp.target = "_blank";
 

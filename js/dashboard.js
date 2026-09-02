@@ -431,12 +431,18 @@ function mostrarCategorias(
 
         if (!categorias[categoria]) {
 
-            categorias[categoria] = 0;
+            categorias[categoria] = {
+                cantidad: 0,
+                sumaPrecios: 0
+            };
 
         }
 
 
-        categorias[categoria]++;
+        categorias[categoria].cantidad++;
+
+        categorias[categoria].sumaPrecios +=
+            Number(producto.precio) || 0;
 
     });
 
@@ -475,6 +481,15 @@ function mostrarCategorias(
                 "categoria-item";
 
 
+            const datos =
+                categorias[categoria];
+
+            const precioPromedioCategoria =
+                datos.cantidad
+                    ? datos.sumaPrecios / datos.cantidad
+                    : 0;
+
+
             elemento.innerHTML = `
 
                 <span>
@@ -482,8 +497,12 @@ function mostrarCategorias(
                 </span>
 
                 <strong>
-                    ${categorias[categoria]}
+                    ${datos.cantidad}
                 </strong>
+
+                <small class="categoria-precio-promedio">
+                    Precio promedio: ${formatearPrecio(precioPromedioCategoria)}
+                </small>
 
             `;
 

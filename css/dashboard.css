@@ -302,6 +302,18 @@ body {
     font-size: 1.7rem;
 }
 
+.categoria-precio-promedio {
+    display: block;
+
+    margin-top: 8px;
+
+    color: #9b4169;
+
+    font-size: 0.8rem;
+
+    font-weight: 600;
+}
+
 
 /* =========================================
    DISTRIBUCIÓN (GRÁFICA)
