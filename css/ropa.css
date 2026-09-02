@@ -386,12 +386,6 @@
     background: #fff8fb;
 }
 
-.acordeon-faq {
-    max-width: 850px;
-
-    margin: 0 auto;
-}
-
 .acordeon-faq .accordion-item {
     border: none;
 
@@ -399,7 +393,7 @@
 
     overflow: hidden;
 
-    margin-bottom: 16px;
+    height: 100%;
 
     box-shadow:
         0 8px 25px rgba(100, 30, 65, 0.08);

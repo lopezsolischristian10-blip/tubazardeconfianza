@@ -547,6 +547,75 @@
         </section>
 
 
+
+        <!-- VENTAS POR PERIODO -->
+
+        <section class="dashboard-card">
+
+            <div class="card-title distribucion-titulo">
+
+                <div>
+
+                    <span>
+                        Ingresos
+                    </span>
+
+                    <h2>
+                        Ventas por periodo
+                    </h2>
+
+                </div>
+
+                <div
+                    class="grupo-periodo-grafica"
+                    role="group"
+                    aria-label="Periodo de ventas"
+                >
+
+                    <button
+                        type="button"
+                        class="btn-periodo-grafica"
+                        data-periodo="7"
+                    >
+                        7 días
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-periodo-grafica activo"
+                        data-periodo="30"
+                    >
+                        30 días
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-periodo-grafica"
+                        data-periodo="90"
+                    >
+                        3 meses
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-periodo-grafica"
+                        data-periodo="365"
+                    >
+                        Año
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="ventas-grafica-contenedor">
+                <canvas id="graficaVentas"></canvas>
+            </div>
+
+        </section>
+
+
     </div>
 
 </main>

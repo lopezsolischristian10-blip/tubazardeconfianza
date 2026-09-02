@@ -9,6 +9,13 @@ let conteoEstados = {
 };
 
 
+let graficaVentas = null;
+
+let periodoVentasActual = "30";
+
+let productosCargados = [];
+
+
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
@@ -42,6 +49,41 @@ document.addEventListener(
                         boton.dataset.tipo;
 
                     mostrarGraficaDistribucion();
+
+                });
+
+            });
+
+
+        /* ==================================
+           BOTONES: PERIODO DE VENTAS
+        ================================== */
+
+        document
+            .querySelectorAll(".btn-periodo-grafica")
+            .forEach(boton => {
+
+                boton.addEventListener("click", () => {
+
+                    if (
+                        boton.dataset.periodo ===
+                        periodoVentasActual
+                    ) {
+                        return;
+                    }
+
+                    document
+                        .querySelectorAll(".btn-periodo-grafica")
+                        .forEach(btn =>
+                            btn.classList.remove("activo")
+                        );
+
+                    boton.classList.add("activo");
+
+                    periodoVentasActual =
+                        boton.dataset.periodo;
+
+                    mostrarGraficaVentas();
 
                 });
 
@@ -99,6 +141,10 @@ document.addEventListener(
 function calcularEstadisticas(
     productos
 ) {
+
+    productosCargados =
+        productos;
+
 
     const total =
         productos.length;
@@ -289,6 +335,14 @@ function calcularEstadisticas(
 
     mostrarGraficaDistribucion();
 
+
+
+    /* ==================================
+       VENTAS POR PERIODO (GRÁFICA)
+    ================================== */
+
+    mostrarGraficaVentas();
+
 }
 
 
@@ -400,6 +454,303 @@ function mostrarGraficaDistribucion() {
             }
         }
     );
+
+}
+
+
+
+/* =========================================
+   VENTAS POR PERIODO
+   (agrupa las prendas compradas según su
+   fecha de registro, dentro del periodo
+   seleccionado)
+========================================= */
+
+function mostrarGraficaVentas() {
+
+    const lienzo =
+        document.getElementById(
+            "graficaVentas"
+        );
+
+    if (!lienzo || typeof Chart === "undefined") {
+        return;
+    }
+
+
+    const dias =
+        Number(periodoVentasActual);
+
+    const agrupacion =
+        dias <= 30
+            ? "dia"
+            : dias <= 90
+                ? "semana"
+                : "mes";
+
+    const { etiquetas, valores } =
+        agruparVentasPorPeriodo(
+            productosCargados,
+            dias,
+            agrupacion
+        );
+
+
+    if (graficaVentas) {
+        graficaVentas.destroy();
+    }
+
+
+    graficaVentas = new Chart(
+        lienzo,
+        {
+            type: "line",
+
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    label: "Ventas",
+                    data: valores,
+                    borderColor: "#d63384",
+                    backgroundColor: "rgba(214, 51, 132, 0.12)",
+                    pointBackgroundColor: "#d63384",
+                    pointBorderColor: "#fff",
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.35,
+                    fill: true,
+                    borderWidth: 2.5
+                }]
+            },
+
+            options: {
+                responsive: true,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: contexto =>
+                                ` ${formatearPrecio(contexto.parsed.y)}`
+                        }
+                    }
+                },
+
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: "#806270" }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: "#806270",
+                            callback: valor =>
+                                formatearPrecio(valor)
+                        },
+                        grid: { color: "#f3e3ea" }
+                    }
+                }
+            }
+        }
+    );
+
+}
+
+
+
+function agruparVentasPorPeriodo(
+    productos,
+    dias,
+    agrupacion
+) {
+
+    const hoy = new Date();
+
+    hoy.setHours(0, 0, 0, 0);
+
+    const inicio =
+        new Date(hoy);
+
+    inicio.setDate(
+        inicio.getDate() - (dias - 1)
+    );
+
+
+    const compradas =
+        productos.filter(producto => {
+
+            if (producto.estado !== "comprado") {
+                return false;
+            }
+
+            const fecha =
+                parsearFecha(producto.fecha);
+
+            return (
+                fecha &&
+                fecha >= inicio &&
+                fecha <= hoy
+            );
+
+        });
+
+
+    const cubos = {};
+
+    compradas.forEach(producto => {
+
+        const fecha =
+            parsearFecha(producto.fecha);
+
+        const clave =
+            claveDeAgrupacion(
+                fecha,
+                agrupacion
+            );
+
+        cubos[clave] =
+            (cubos[clave] || 0) +
+            (Number(producto.precio) || 0);
+
+    });
+
+
+    const etiquetas = [];
+
+    const valores = [];
+
+    if (agrupacion === "dia") {
+
+        for (
+            let fecha = new Date(inicio);
+            fecha <= hoy;
+            fecha.setDate(fecha.getDate() + 1)
+        ) {
+
+            const clave =
+                claveDeAgrupacion(fecha, "dia");
+
+            etiquetas.push(
+                fecha.toLocaleDateString(
+                    "es-MX",
+                    { day: "numeric", month: "short" }
+                )
+            );
+
+            valores.push(cubos[clave] || 0);
+
+        }
+
+    } else if (agrupacion === "semana") {
+
+        for (
+            let fecha = new Date(inicio);
+            fecha <= hoy;
+            fecha.setDate(fecha.getDate() + 7)
+        ) {
+
+            const finSemana =
+                new Date(fecha);
+
+            finSemana.setDate(
+                finSemana.getDate() + 6
+            );
+
+            let sumaSemana = 0;
+
+            for (
+                let dia = new Date(fecha);
+                dia <= finSemana && dia <= hoy;
+                dia.setDate(dia.getDate() + 1)
+            ) {
+
+                sumaSemana +=
+                    cubos[claveDeAgrupacion(dia, "dia")] || 0;
+
+            }
+
+            etiquetas.push(
+                fecha.toLocaleDateString(
+                    "es-MX",
+                    { day: "numeric", month: "short" }
+                )
+            );
+
+            valores.push(sumaSemana);
+
+        }
+
+    } else {
+
+        for (let i = 11; i >= 0; i--) {
+
+            const fecha =
+                new Date(
+                    hoy.getFullYear(),
+                    hoy.getMonth() - i,
+                    1
+                );
+
+            const clave =
+                `${fecha.getFullYear()}-${fecha.getMonth()}`;
+
+            etiquetas.push(
+                fecha.toLocaleDateString(
+                    "es-MX",
+                    { month: "short", year: "2-digit" }
+                )
+            );
+
+            valores.push(cubos[clave] || 0);
+
+        }
+
+    }
+
+    return { etiquetas, valores };
+
+}
+
+
+
+function claveDeAgrupacion(
+    fecha,
+    agrupacion
+) {
+
+    if (agrupacion === "mes") {
+        return `${fecha.getFullYear()}-${fecha.getMonth()}`;
+    }
+
+    return fecha.toISOString().slice(0, 10);
+
+}
+
+
+
+function parsearFecha(valor) {
+
+    if (!valor) return null;
+
+    const partes =
+        String(valor)
+            .slice(0, 10)
+            .split("-");
+
+    if (partes.length !== 3) return null;
+
+    const [anio, mes, dia] =
+        partes.map(Number);
+
+    const fecha =
+        new Date(anio, mes - 1, dia);
+
+    fecha.setHours(0, 0, 0, 0);
+
+    return fecha;
 
 }
 

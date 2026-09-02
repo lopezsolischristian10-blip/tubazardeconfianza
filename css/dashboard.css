@@ -331,7 +331,8 @@ body {
     gap: 15px;
 }
 
-.grupo-tipo-grafica {
+.grupo-tipo-grafica,
+.grupo-periodo-grafica {
     display: inline-flex;
 
     background: #fff6f9;
@@ -347,7 +348,8 @@ body {
     flex-shrink: 0;
 }
 
-.btn-tipo-grafica {
+.btn-tipo-grafica,
+.btn-periodo-grafica {
     border: none;
 
     background: transparent;
@@ -371,11 +373,13 @@ body {
     transition: 0.25s;
 }
 
-.btn-tipo-grafica:hover {
+.btn-tipo-grafica:hover,
+.btn-periodo-grafica:hover {
     color: #d63384;
 }
 
-.btn-tipo-grafica.activo {
+.btn-tipo-grafica.activo,
+.btn-periodo-grafica.activo {
     background: #d63384;
 
     color: #fff;
@@ -391,6 +395,21 @@ body {
 
 .distribucion-grafica-contenedor canvas {
     max-height: 320px;
+}
+
+
+/* =========================================
+   VENTAS POR PERIODO (GRÁFICA)
+========================================= */
+
+.ventas-grafica-contenedor {
+    margin-top: 10px;
+
+    position: relative;
+}
+
+.ventas-grafica-contenedor canvas {
+    max-height: 340px;
 }
 
 
