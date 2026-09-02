@@ -49,9 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const estado =
         document.getElementById("estado");
 
+    const paginacionProductos =
+        document.getElementById("paginacionProductos");
+
     let productos = [];
 
     let idEliminar = null;
+
+    const PRODUCTOS_POR_PAGINA = 10;
+
+    let paginaActual = 1;
 
 
 
@@ -172,6 +179,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             sinProductos.classList.remove("d-none");
 
+            paginacionProductos.innerHTML = "";
+
             return;
 
         }
@@ -179,7 +188,41 @@ document.addEventListener("DOMContentLoaded", () => {
         sinProductos.classList.add("d-none");
 
 
-        productos.forEach(producto => {
+        /*
+         * PAGINACIÓN
+         *
+         * Se muestran únicamente 10 registros por
+         * página, navegables con "Anterior", números
+         * de página y "Siguiente".
+         */
+
+        const totalPaginas =
+            Math.max(
+                1,
+                Math.ceil(
+                    productos.length / PRODUCTOS_POR_PAGINA
+                )
+            );
+
+        if (paginaActual > totalPaginas) {
+            paginaActual = totalPaginas;
+        }
+
+        if (paginaActual < 1) {
+            paginaActual = 1;
+        }
+
+        const inicio =
+            (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+
+        const productosPagina =
+            productos.slice(
+                inicio,
+                inicio + PRODUCTOS_POR_PAGINA
+            );
+
+
+        productosPagina.forEach(producto => {
 
             const fila =
                 document.createElement("tr");
@@ -289,6 +332,109 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         agregarEventosTabla();
+
+        renderizarPaginacion(totalPaginas);
+
+    }
+
+
+
+    /* ==========================================
+       RENDERIZAR PAGINACIÓN
+    ========================================== */
+
+    function renderizarPaginacion(totalPaginas) {
+
+        paginacionProductos.innerHTML = "";
+
+        if (totalPaginas <= 1) return;
+
+
+        paginacionProductos.appendChild(
+            crearItemPaginacion(
+                "Anterior",
+                paginaActual - 1,
+                paginaActual === 1
+            )
+        );
+
+
+        for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+
+            paginacionProductos.appendChild(
+                crearItemPaginacion(
+                    pagina,
+                    pagina,
+                    false,
+                    pagina === paginaActual
+                )
+            );
+
+        }
+
+
+        paginacionProductos.appendChild(
+            crearItemPaginacion(
+                "Siguiente",
+                paginaActual + 1,
+                paginaActual === totalPaginas
+            )
+        );
+
+    }
+
+
+    function crearItemPaginacion(
+        etiqueta,
+        paginaDestino,
+        deshabilitado,
+        activo = false
+    ) {
+
+        const item =
+            document.createElement("li");
+
+        item.className =
+            `page-item${deshabilitado ? " disabled" : ""}${activo ? " active" : ""}`;
+
+
+        const enlace =
+            document.createElement("a");
+
+        enlace.className = "page-link";
+
+        enlace.href = "#";
+
+        enlace.textContent = etiqueta;
+
+        if (activo) {
+            enlace.setAttribute("aria-current", "page");
+        }
+
+
+        enlace.addEventListener("click", evento => {
+
+            evento.preventDefault();
+
+            if (deshabilitado || activo) return;
+
+            paginaActual = paginaDestino;
+
+            mostrarTabla();
+
+            document
+                .getElementById("tablaContainer")
+                .scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+        });
+
+
+        item.appendChild(enlace);
+
+        return item;
 
     }
 
@@ -542,6 +688,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 limpiarFormulario();
+
+                if (!id) {
+                    paginaActual = 1;
+                }
 
                 await cargarProductos();
 

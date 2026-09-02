@@ -538,7 +538,90 @@
 
     white-space: pre-line;
 
-    margin: 8px 0 15px;
+    margin: 8px 0 6px;
+
+    display: -webkit-box;
+
+    -webkit-box-orient: vertical;
+
+    -webkit-line-clamp: 3;
+
+    overflow: hidden;
+}
+
+.btn-ver-mas {
+    display: inline-block;
+
+    background: none;
+
+    border: none;
+
+    padding: 0 0 14px;
+
+    color: #d63384;
+
+    font-weight: 600;
+
+    font-size: 0.85rem;
+
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+.btn-ver-mas:hover {
+    color: #a61e5a;
+}
+
+
+/* =========================================
+   MODAL DESCRIPCIÓN
+========================================= */
+
+.modal-descripcion-imagen {
+    width: 100%;
+
+    max-height: 340px;
+
+    object-fit: cover;
+
+    border-radius: 14px;
+
+    margin-bottom: 18px;
+}
+
+.modal-descripcion-texto {
+    color: #59404c;
+
+    line-height: 1.7;
+
+    white-space: pre-line;
+}
+
+.modal-descripcion-precio {
+    font-size: 1.4rem;
+
+    font-weight: 600;
+
+    color: #54243b;
+
+    margin: 12px 0 18px;
+}
+
+.modal-descripcion-estado-info {
+    color: #806270;
+
+    font-weight: 600;
+
+    background: #fff6f9;
+
+    border: 1px solid #f1dce5;
+
+    border-radius: 10px;
+
+    padding: 12px 15px;
+
+    margin: 0;
 }
 
 .ropa-precio {

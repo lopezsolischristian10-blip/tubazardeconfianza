@@ -1,6 +1,52 @@
+let graficaDistribucion = null;
+
+let tipoGraficaActual = "pie";
+
+let conteoEstados = {
+    disponible: 0,
+    apartado: 0,
+    comprado: 0
+};
+
+
 document.addEventListener(
     "DOMContentLoaded",
     async () => {
+
+        /* ==================================
+           BOTONES: PASTEL / BARRAS
+        ================================== */
+
+        document
+            .querySelectorAll(".btn-tipo-grafica")
+            .forEach(boton => {
+
+                boton.addEventListener("click", () => {
+
+                    if (
+                        boton.dataset.tipo ===
+                        tipoGraficaActual
+                    ) {
+                        return;
+                    }
+
+                    document
+                        .querySelectorAll(".btn-tipo-grafica")
+                        .forEach(btn =>
+                            btn.classList.remove("activo")
+                        );
+
+                    boton.classList.add("activo");
+
+                    tipoGraficaActual =
+                        boton.dataset.tipo;
+
+                    mostrarGraficaDistribucion();
+
+                });
+
+            });
+
 
         try {
 
@@ -154,44 +200,128 @@ function calcularEstadisticas(
 
 
     /* ==================================
-       BARRA
+       DISTRIBUCIÓN (GRÁFICA)
     ================================== */
 
-    if (total > 0) {
+    conteoEstados = {
+        disponible: disponibles.length,
+        apartado: apartadas.length,
+        comprado: compradas.length
+    };
 
-        const porcentajeDisponible =
-            (disponibles.length / total) *
-            100;
+    mostrarGraficaDistribucion();
 
-
-        const porcentajeApartado =
-            (apartadas.length / total) *
-            100;
-
-
-        const porcentajeComprado =
-            (compradas.length / total) *
-            100;
+}
 
 
+
+/* =========================================
+   GRÁFICA DE DISTRIBUCIÓN
+   (pastel o barras, según lo elegido)
+========================================= */
+
+function mostrarGraficaDistribucion() {
+
+    const lienzo =
         document.getElementById(
-            "barraDisponible"
-        ).style.width =
-            `${porcentajeDisponible}%`;
+            "graficaDistribucion"
+        );
 
-
-        document.getElementById(
-            "barraApartado"
-        ).style.width =
-            `${porcentajeApartado}%`;
-
-
-        document.getElementById(
-            "barraComprado"
-        ).style.width =
-            `${porcentajeComprado}%`;
-
+    if (!lienzo || typeof Chart === "undefined") {
+        return;
     }
+
+
+    const etiquetas =
+        ["Disponibles", "Apartadas", "Compradas"];
+
+    const valores = [
+        conteoEstados.disponible,
+        conteoEstados.apartado,
+        conteoEstados.comprado
+    ];
+
+    const colores =
+        ["#d63384", "#f0b429", "#777777"];
+
+
+    const esPastel =
+        tipoGraficaActual === "pie";
+
+
+    if (graficaDistribucion) {
+        graficaDistribucion.destroy();
+    }
+
+
+    graficaDistribucion = new Chart(
+        lienzo,
+        {
+            type: tipoGraficaActual,
+
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    label: "Prendas",
+                    data: valores,
+                    backgroundColor: colores,
+                    borderColor: esPastel
+                        ? "#ffffff"
+                        : colores,
+                    borderWidth: esPastel ? 3 : 0,
+                    borderRadius: esPastel ? 0 : 8,
+                    maxBarThickness: 70
+                }]
+            },
+
+            options: {
+                responsive: true,
+
+                plugins: {
+                    legend: {
+                        display: esPastel,
+                        position: "bottom",
+                        labels: {
+                            color: "#59404c",
+                            usePointStyle: true,
+                            padding: 18
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: contexto => {
+
+                                const valor =
+                                    esPastel
+                                        ? contexto.parsed
+                                        : contexto.parsed.y;
+
+                                return ` ${contexto.label}: ${valor}`;
+
+                            }
+                        }
+                    }
+                },
+
+                scales: esPastel
+                    ? undefined
+                    : {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: "#806270" }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                color: "#806270"
+                            },
+                            grid: { color: "#f3e3ea" }
+                        }
+                    }
+            }
+        }
+    );
 
 }
 

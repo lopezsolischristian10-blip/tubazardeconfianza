@@ -48,6 +48,10 @@
         href="css/dashboard.css"
     >
 
+    <!-- Chart.js -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
 </head>
 
 
@@ -247,6 +251,61 @@
 
 
 
+        <!-- DISTRIBUCIÓN -->
+
+        <section class="dashboard-card">
+
+            <div class="card-title distribucion-titulo">
+
+                <div>
+
+                    <span>
+                        Estado del inventario
+                    </span>
+
+                    <h2>
+                        Distribución de prendas
+                    </h2>
+
+                </div>
+
+                <div
+                    class="grupo-tipo-grafica"
+                    role="group"
+                    aria-label="Tipo de gráfica"
+                >
+
+                    <button
+                        type="button"
+                        class="btn-tipo-grafica activo"
+                        data-tipo="pie"
+                    >
+                        <i class="bi bi-pie-chart-fill"></i>
+                        Pastel
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-tipo-grafica"
+                        data-tipo="bar"
+                    >
+                        <i class="bi bi-bar-chart-fill"></i>
+                        Barras
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="distribucion-grafica-contenedor">
+                <canvas id="graficaDistribucion"></canvas>
+            </div>
+
+        </section>
+
+
+
         <!-- INFORMACIÓN ECONÓMICA -->
 
         <div class="row g-4 mb-5">
@@ -324,70 +383,6 @@
                 id="categorias"
                 class="categorias"
             >
-
-            </div>
-
-        </section>
-
-
-
-        <!-- DISTRIBUCIÓN -->
-
-        <section class="dashboard-card">
-
-            <div class="card-title">
-
-                <div>
-
-                    <span>
-                        Estado del inventario
-                    </span>
-
-                    <h2>
-                        Distribución de prendas
-                    </h2>
-
-                </div>
-
-            </div>
-
-
-            <div class="barra-estados">
-
-                <div
-                    id="barraDisponible"
-                    class="barra disponible"
-                ></div>
-
-                <div
-                    id="barraApartado"
-                    class="barra apartado"
-                ></div>
-
-                <div
-                    id="barraComprado"
-                    class="barra comprado"
-                ></div>
-
-            </div>
-
-
-            <div class="leyenda">
-
-                <span>
-                    <i class="punto disponible"></i>
-                    Disponibles
-                </span>
-
-                <span>
-                    <i class="punto apartado"></i>
-                    Apartadas
-                </span>
-
-                <span>
-                    <i class="punto comprado"></i>
-                    Compradas
-                </span>
 
             </div>
 

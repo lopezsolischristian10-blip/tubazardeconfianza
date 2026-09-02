@@ -8,6 +8,21 @@ document.addEventListener("DOMContentLoaded", () => {
     let productos = [];
 
 
+    /*
+     * Prioridad para acomodar las prendas: primero las
+     * disponibles, luego las apartadas y al final las
+     * compradas. Dentro de cada grupo se conserva el
+     * orden que ya entrega la función (más recientes
+     * primero), gracias a que el ordenamiento es estable.
+     */
+
+    const ORDEN_ESTADO = {
+        disponible: 0,
+        apartado: 1,
+        comprado: 2
+    };
+
+
     /* ==========================================
        CARGAR PRODUCTOS
     ========================================== */
@@ -36,7 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
-            productos = JSON.parse(texto);
+            productos = ordenarProductos(
+                JSON.parse(texto)
+            );
 
             loader.classList.add("d-none");
 
@@ -60,6 +77,27 @@ document.addEventListener("DOMContentLoaded", () => {
             mostrarMensajeSinRopa();
 
         }
+
+    }
+
+
+    /* ==========================================
+       ORDENAR PRODUCTOS
+    ========================================== */
+
+    function ordenarProductos(lista) {
+
+        return [...lista].sort((a, b) => {
+
+            const ordenA =
+                ORDEN_ESTADO[a.estado] ?? 3;
+
+            const ordenB =
+                ORDEN_ESTADO[b.estado] ?? 3;
+
+            return ordenA - ordenB;
+
+        });
 
     }
 
@@ -161,6 +199,8 @@ document.addEventListener("DOMContentLoaded", () => {
             contenedor.appendChild(tarjeta);
 
         });
+
+        actualizarBotonesVerMas();
 
     }
 
@@ -315,6 +355,33 @@ document.addEventListener("DOMContentLoaded", () => {
             producto.descripcion || "";
 
 
+        /*
+         * VER MÁS
+         *
+         * La descripción se muestra recortada a 3
+         * renglones (vía CSS). Este botón solo se
+         * muestra si el texto realmente se recortó
+         * (ver actualizarBotonesVerMas) y abre un
+         * modal con la descripción completa.
+         */
+
+        const botonVerMas =
+            document.createElement("button");
+
+        botonVerMas.type = "button";
+
+        botonVerMas.className =
+            "btn-ver-mas d-none";
+
+        botonVerMas.textContent =
+            "Ver más";
+
+        botonVerMas.addEventListener(
+            "click",
+            () => abrirModalDescripcion(producto)
+        );
+
+
         const precio =
             document.createElement("div");
 
@@ -329,6 +396,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         informacion.appendChild(descripcion);
 
+        informacion.appendChild(botonVerMas);
+
         informacion.appendChild(precio);
 
 
@@ -341,77 +410,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (producto.estado === "disponible") {
 
-            const whatsapp =
-                document.createElement("a");
-
-            whatsapp.className =
-                "btn-whatsapp";
-
-            whatsapp.target = "_blank";
-
-            whatsapp.rel = "noopener";
-
-
-            const imagenURL =
-                `${window.location.origin}/.netlify/functions/imagen?key=${encodeURIComponent(producto.foto)}`;
-
-
-            const mensaje =
-                `YO 🙋🏻‍♀️\n\n` +
-                `${producto.descripcion}\n\n` +
-                `Precio: ${formatearPrecio(producto.precio)}\n\n` +
-                `Foto: ${imagenURL}`;
-
-
-            /*
-             * Enlace al grupo de WhatsApp.
-             *
-             * IMPORTANTE: WhatsApp no permite prellenar
-             * un mensaje (ni mucho menos adjuntar una foto)
-             * en un link de invitación a grupo, así que
-             * copiamos el mensaje al portapapeles antes de
-             * abrir el grupo, para que la clienta solo tenga
-             * que pegarlo.
-             */
-
-            const linkGrupo =
-                "https://chat.whatsapp.com/L27TM6CVe0R6IFYzoIs9O5";
-
-
-            whatsapp.href =
-                linkGrupo;
-
-
-            whatsapp.addEventListener(
-                "click",
-                async () => {
-
-                    try {
-
-                        await navigator.clipboard.writeText(
-                            mensaje
-                        );
-
-                        mostrarAvisoCopiado();
-
-                    } catch (error) {
-
-                        console.error(
-                            "No se pudo copiar el mensaje:",
-                            error
-                        );
-
-                    }
-
-                }
+            informacion.appendChild(
+                crearBotonWhatsapp(producto)
             );
-
-
-            whatsapp.innerHTML =
-                `<i class="bi bi-whatsapp"></i> Yo quiero esta prenda`;
-
-
-            informacion.appendChild(whatsapp);
 
         }
 
@@ -424,6 +425,209 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         return columna;
+
+    }
+
+
+    /* ==========================================
+       BOTÓN "YO QUIERO ESTA PRENDA"
+       (se usa tanto en la tarjeta como en el
+       modal de descripción)
+    ========================================== */
+
+    function crearBotonWhatsapp(producto) {
+
+        const whatsapp =
+            document.createElement("a");
+
+        whatsapp.className =
+            "btn-whatsapp";
+
+        whatsapp.target = "_blank";
+
+        whatsapp.rel = "noopener";
+
+
+        const imagenURL =
+            `${window.location.origin}/.netlify/functions/imagen?key=${encodeURIComponent(producto.foto)}`;
+
+
+        const mensaje =
+            `YO 🙋🏻‍♀️\n\n` +
+            `${producto.descripcion}\n\n` +
+            `Precio: ${formatearPrecio(producto.precio)}\n\n` +
+            `Foto: ${imagenURL}`;
+
+
+        /*
+         * Enlace al grupo de WhatsApp.
+         *
+         * IMPORTANTE: WhatsApp no permite prellenar
+         * un mensaje (ni mucho menos adjuntar una foto)
+         * en un link de invitación a grupo, así que
+         * copiamos el mensaje al portapapeles antes de
+         * abrir el grupo, para que la clienta solo tenga
+         * que pegarlo. El mensaje siempre incluye el "YO",
+         * la descripción/leyenda de la prenda y el enlace
+         * de la foto.
+         */
+
+        const linkGrupo =
+            "https://chat.whatsapp.com/L27TM6CVe0R6IFYzoIs9O5";
+
+
+        whatsapp.href =
+            linkGrupo;
+
+
+        whatsapp.addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        mensaje
+                    );
+
+                    mostrarAvisoCopiado();
+
+                } catch (error) {
+
+                    console.error(
+                        "No se pudo copiar el mensaje:",
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+
+        whatsapp.innerHTML =
+            `<i class="bi bi-whatsapp"></i> Yo quiero esta prenda`;
+
+
+        return whatsapp;
+
+    }
+
+
+    /* ==========================================
+       VER MÁS: MOSTRAR / OCULTAR BOTÓN
+       SEGÚN SI LA DESCRIPCIÓN SE RECORTÓ
+    ========================================== */
+
+    function actualizarBotonesVerMas() {
+
+        requestAnimationFrame(() => {
+
+            document
+                .querySelectorAll(".ropa-descripcion")
+                .forEach(descripcion => {
+
+                    const boton =
+                        descripcion.nextElementSibling;
+
+                    if (
+                        !boton ||
+                        !boton.classList.contains("btn-ver-mas")
+                    ) {
+                        return;
+                    }
+
+                    const estaRecortada =
+                        descripcion.scrollHeight >
+                        descripcion.clientHeight + 1;
+
+                    boton.classList.toggle(
+                        "d-none",
+                        !estaRecortada
+                    );
+
+                });
+
+        });
+
+    }
+
+
+    /* ==========================================
+       MODAL: VER DESCRIPCIÓN COMPLETA
+    ========================================== */
+
+    function abrirModalDescripcion(producto) {
+
+        const modalElemento =
+            document.getElementById("modalDescripcion");
+
+        if (!modalElemento) return;
+
+
+        const imagen =
+            document.getElementById("modalDescripcionImagen");
+
+        const categoriaTitulo =
+            document.getElementById("modalDescripcionCategoria");
+
+        const texto =
+            document.getElementById("modalDescripcionTexto");
+
+        const precio =
+            document.getElementById("modalDescripcionPrecio");
+
+        const zonaWhatsapp =
+            document.getElementById("modalDescripcionWhatsapp");
+
+
+        imagen.src =
+            producto.foto
+                ? `/.netlify/functions/imagen?key=${encodeURIComponent(producto.foto)}`
+                : "https://placehold.co/600x800/f9edf3/8e2855?text=Sin+imagen";
+
+        imagen.alt =
+            producto.categoria ||
+            "Prenda de Tu Bazar de Confianza";
+
+
+        categoriaTitulo.textContent =
+            producto.categoria || "Prenda";
+
+        texto.textContent =
+            producto.descripcion || "";
+
+        precio.textContent =
+            formatearPrecio(producto.precio);
+
+
+        zonaWhatsapp.innerHTML = "";
+
+        if (producto.estado === "disponible") {
+
+            zonaWhatsapp.appendChild(
+                crearBotonWhatsapp(producto)
+            );
+
+        } else {
+
+            const infoEstado =
+                document.createElement("p");
+
+            infoEstado.className =
+                "modal-descripcion-estado-info";
+
+            infoEstado.textContent =
+                producto.estado === "apartado"
+                    ? "Esta prenda ya está apartada. 💛"
+                    : "Esta prenda ya fue vendida. 🤍";
+
+            zonaWhatsapp.appendChild(infoEstado);
+
+        }
+
+
+        new bootstrap.Modal(modalElemento).show();
 
     }
 

@@ -497,6 +497,45 @@ textarea.form-control {
     border-radius: 8px;
 }
 
+
+/* =========================================
+   PAGINACIÓN
+========================================= */
+
+#paginacionContenedor {
+    margin-top: 25px;
+}
+
+.pagination .page-link {
+    color: #a6415f;
+
+    border-color: #f0dce5;
+}
+
+.pagination .page-link:hover {
+    color: #d63384;
+
+    background-color: #fff6f9;
+
+    border-color: #f0dce5;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #d63384;
+
+    border-color: #d63384;
+
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #c3aab5;
+
+    background-color: #fff;
+
+    border-color: #f0dce5;
+}
+
 .descripcion-tabla {
     max-width: 300px;
 

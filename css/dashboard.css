@@ -296,37 +296,81 @@ body {
 
 
 /* =========================================
-   BARRA
+   DISTRIBUCIÓN (GRÁFICA)
 ========================================= */
 
-.barra-estados {
+.distribucion-titulo {
     display: flex;
 
-    width: 100%;
+    flex-wrap: wrap;
 
-    height: 35px;
+    align-items: flex-start;
 
-    border-radius: 20px;
+    justify-content: space-between;
 
-    overflow: hidden;
-
-    background: #eee;
+    gap: 15px;
 }
 
-.barra {
-    transition: width 0.6s ease;
+.grupo-tipo-grafica {
+    display: inline-flex;
+
+    background: #fff6f9;
+
+    border: 1px solid #f1dce5;
+
+    border-radius: 30px;
+
+    padding: 4px;
+
+    gap: 4px;
+
+    flex-shrink: 0;
 }
 
-.barra.disponible {
+.btn-tipo-grafica {
+    border: none;
+
+    background: transparent;
+
+    color: #806270;
+
+    padding: 7px 16px;
+
+    border-radius: 30px;
+
+    font-size: 0.85rem;
+
+    font-weight: 600;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    transition: 0.25s;
+}
+
+.btn-tipo-grafica:hover {
+    color: #d63384;
+}
+
+.btn-tipo-grafica.activo {
     background: #d63384;
+
+    color: #fff;
 }
 
-.barra.apartado {
-    background: #f0b429;
+.distribucion-grafica-contenedor {
+    max-width: 420px;
+
+    margin: 10px auto 0;
+
+    position: relative;
 }
 
-.barra.comprado {
-    background: #777;
+.distribucion-grafica-contenedor canvas {
+    max-height: 320px;
 }
 
 
