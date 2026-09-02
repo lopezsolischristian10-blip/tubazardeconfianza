@@ -18,7 +18,8 @@ export default async (req) => {
                     descripcion,
                     precio,
                     categoria,
-                    estado
+                    estado,
+                    fecha
                 FROM productos
                 ORDER BY id DESC
             `;
@@ -80,6 +81,17 @@ export default async (req) => {
 
             let nombreFoto = null;
 
+            /*
+             * FECHA
+             *
+             * Al crear una prenda nueva, la fecha siempre
+             * se toma del servidor (fecha del "computador"),
+             * nunca se recibe desde el formulario.
+             */
+
+            const fecha =
+                new Date().toISOString().slice(0, 10);
+
             /* ==========================================
                GUARDAR IMAGEN EN NETLIFY BLOBS
             ========================================== */
@@ -125,7 +137,8 @@ export default async (req) => {
                     descripcion,
                     precio,
                     categoria,
-                    estado
+                    estado,
+                    fecha
                 )
                 VALUES
                 (
@@ -133,7 +146,8 @@ export default async (req) => {
                     ${descripcion},
                     ${precioNumero},
                     ${categoria},
-                    ${estado}
+                    ${estado},
+                    ${fecha}
                 )
                 RETURNING
                     id,
@@ -141,7 +155,8 @@ export default async (req) => {
                     descripcion,
                     precio,
                     categoria,
-                    estado
+                    estado,
+                    fecha
             `;
 
             return respuestaJSON(
@@ -300,6 +315,11 @@ export default async (req) => {
                ACTUALIZAR PRODUCTO
             ========================================== */
 
+            /*
+             * La fecha NUNCA se modifica al editar una
+             * prenda: solo se asigna una vez, al crearla.
+             */
+
             const resultado = await db.sql`
                 UPDATE productos
                 SET
@@ -315,7 +335,8 @@ export default async (req) => {
                     descripcion,
                     precio,
                     categoria,
-                    estado
+                    estado,
+                    fecha
             `;
 
             return respuestaJSON(
